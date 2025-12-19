@@ -80,18 +80,29 @@
                     <input type="number" id="price" name="price" class="form-input" value="{{ old('price', $course->price) }}" step="0.01" required>
                     @error('price') <span class="error-text">{{ $message }}</span> @enderror
                 </div>
-                
-                <div class="form-group">
-                    <label for="duration">Duration (weeks)</label>
-                    <input type="number" id="duration" name="duration" class="form-input" value="{{ old('duration', $course->duration) }}">
-                </div>
             </div>
             
             <div class="form-group">
-                <label for="is_closed">Course Status</label>
+                <label>Enrollment Mode</label>
                 <div class="toggle-buttons" style="margin-top: 0.5rem;">
-                    <button type="button" class="toggle-btn {{ !$course->is_closed ? 'active' : '' }}" onclick="setCourseStatus(false)">Active</button>
-                    <button type="button" class="toggle-btn {{ $course->is_closed ? 'active' : '' }}" onclick="setCourseStatus(true)">Closed</button>
+                    <button type="button" class="toggle-btn enrollment-btn {{ !$course->is_closed ? 'active' : '' }}" onclick="setEnrollmentMode(false)">
+                        <i class="fas fa-user-plus"></i>
+                        Direct Join
+                    </button>
+                    <button type="button" class="toggle-btn enrollment-btn {{ $course->is_closed ? 'active' : '' }}" onclick="setEnrollmentMode(true)">
+                        <i class="fas fa-user-clock"></i>
+                        Request Approval
+                    </button>
+                </div>
+                <div class="mode-description">
+                    <span id="direct-mode-desc" style="display: {{ !$course->is_closed ? 'block' : 'none' }};">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        Students can join the course directly without approval
+                    </span>
+                    <span id="request-mode-desc" style="display: {{ $course->is_closed ? 'block' : 'none' }};">
+                        <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                        Students must send join requests that require instructor approval
+                    </span>
                 </div>
                 <input type="hidden" id="is_closed" name="is_closed" value="{{ old('is_closed', $course->is_closed) }}">
             </div>
@@ -110,6 +121,36 @@
 
 @push('styles')
 <style>
+    :root {
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        
+        --blue-50: #eff6ff;
+        --blue-100: #dbeafe;
+        --blue-500: #3b82f6;
+        --blue-600: #2563eb;
+        
+        --green-50: #f0fdf4;
+        --green-100: #dcfce7;
+        --green-500: #10b981;
+        --green-600: #059669;
+        
+        --yellow-50: #fefce8;
+        --yellow-100: #fef3c7;
+        --yellow-500: #f59e0b;
+        --yellow-600: #d97706;
+        
+        --red-500: #ef4444;
+    }
+    
     .course-header {
         display: flex;
         gap: 1rem;
@@ -128,6 +169,8 @@
     .course-info h3 {
         margin: 0;
         font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-900);
     }
     
     .form-group {
@@ -149,10 +192,17 @@
         border-radius: 0.5rem;
         font-size: 0.875rem;
         transition: all 0.2s;
+        background: white;
+        color: var(--gray-800);
     }
     
     textarea.form-input {
         resize: vertical;
+        min-height: 100px;
+    }
+    
+    select.form-input {
+        cursor: pointer;
     }
     
     .form-input:focus {
@@ -162,7 +212,7 @@
     }
     
     .error-text {
-        color: #ef4444;
+        color: var(--red-500);
         font-size: 0.875rem;
         margin-top: 0.25rem;
         display: block;
@@ -173,30 +223,133 @@
         gap: 0.5rem;
     }
     
-    .toggle-btn {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--gray-300);
+    .toggle-btn.enrollment-btn {
+        padding: 1rem;
+        border: 2px solid var(--gray-300);
         background: white;
         border-radius: 0.5rem;
         cursor: pointer;
         font-size: 0.875rem;
+        font-weight: 500;
         transition: all 0.2s;
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--gray-700);
     }
     
-    .toggle-btn:hover {
+    .toggle-btn.enrollment-btn:hover {
+        border-color: var(--gray-400);
+        background: var(--gray-50);
+        transform: translateY(-1px);
+    }
+    
+    .toggle-btn.enrollment-btn.active {
+        border-color: transparent;
+        font-weight: 600;
+    }
+    
+    .toggle-btn.enrollment-btn.active:first-child {
+        background: var(--green-100);
+        color: var(--green-600);
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+    }
+    
+    .toggle-btn.enrollment-btn.active:last-child {
+        background: var(--yellow-100);
+        color: var(--yellow-600);
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+    }
+    
+    .toggle-btn.enrollment-btn i {
+        font-size: 1.25rem;
+    }
+    
+    .mode-description {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background: var(--gray-50);
+        border-radius: 0.5rem;
+        border: 1px solid var(--gray-200);
+        font-size: 0.875rem;
+        color: var(--gray-700);
+    }
+    
+    .mode-description span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .mode-description i {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+        text-decoration: none;
+        gap: 0.5rem;
+    }
+    
+    .btn-outline {
+        background: white;
+        border-color: var(--gray-300);
+        color: var(--gray-700);
+    }
+    
+    .btn-outline:hover {
+        background: var(--gray-50);
         border-color: var(--gray-400);
     }
     
-    .toggle-btn.active {
-        background: var(--blue-600);
+    .btn-primary {
+        background: var(--blue-500);
         color: white;
+        border-color: var(--blue-500);
+    }
+    
+    .btn-primary:hover {
+        background: var(--blue-600);
         border-color: var(--blue-600);
+    }
+    
+    /* Card */
+    .card {
+        background: white;
+        border-radius: 0.75rem;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+    }
+    
+    .card-content {
+        padding: 1.5rem;
     }
     
     @media (max-width: 768px) {
         .form-row {
             grid-template-columns: 1fr;
+        }
+        
+        .toggle-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
         }
     }
 </style>
@@ -205,23 +358,29 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Set initial status
+        // Set initial enrollment mode
         const isClosed = document.getElementById('is_closed').value === '1';
-        setCourseStatus(isClosed);
+        setEnrollmentMode(isClosed);
     });
     
-    function setCourseStatus(isClosed) {
-        const buttons = document.querySelectorAll('.toggle-btn');
+    function setEnrollmentMode(isClosed) {
+        const buttons = document.querySelectorAll('.enrollment-btn');
         const hiddenInput = document.getElementById('is_closed');
+        const directDesc = document.getElementById('direct-mode-desc');
+        const requestDesc = document.getElementById('request-mode-desc');
         
         buttons.forEach(btn => btn.classList.remove('active'));
         
         if (isClosed) {
             buttons[1].classList.add('active');
             hiddenInput.value = '1';
+            directDesc.style.display = 'none';
+            requestDesc.style.display = 'flex';
         } else {
             buttons[0].classList.add('active');
             hiddenInput.value = '0';
+            directDesc.style.display = 'flex';
+            requestDesc.style.display = 'none';
         }
     }
 </script>

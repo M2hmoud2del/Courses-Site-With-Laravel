@@ -88,16 +88,6 @@
             </div>
             
             <div class="form-group">
-                <label>Account Status</label>
-                <div class="toggle-buttons" style="margin-top: 0.5rem;">
-                    <button type="button" class="toggle-btn active">Active</button>
-                    <button type="button" class="toggle-btn">Inactive</button>
-                    <button type="button" class="toggle-btn">Suspended</button>
-                    <input type="hidden" id="status" name="status" value="active">
-                </div>
-            </div>
-            
-            <div class="form-group">
                 <label for="profile_picture">Profile Picture URL</label>
                 <input type="text" id="profile_picture" name="profile_picture" class="form-input" value="{{ old('profile_picture', $user->profile_picture) }}" placeholder="Enter image URL">
                 @if($user->profile_picture)
@@ -126,24 +116,6 @@
                         <label for="password_confirmation">Confirm New Password</label>
                         <input type="password" id="password_confirmation" name="password_confirmation" class="form-input" placeholder="Confirm new password">
                     </div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h4 style="margin-bottom: 1rem;">Additional Information</h4>
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" class="form-input" value="{{ old('phone', $user->phone) }}">
-                </div>
-                
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    <textarea id="address" name="address" class="form-input" rows="2">{{ old('address', $user->address) }}</textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="bio">Bio/Description</label>
-                    <textarea id="bio" name="bio" class="form-input" rows="3">{{ old('bio', $user->bio) }}</textarea>
                 </div>
             </div>
             
@@ -356,35 +328,6 @@
         cursor: pointer;
     }
     
-    /* Toggle Buttons */
-    .toggle-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .toggle-btn {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--gray-300);
-        background: white;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-size: 0.875rem;
-        transition: all 0.2s;
-        flex: 1;
-        color: var(--gray-700);
-    }
-    
-    .toggle-btn:hover {
-        border-color: var(--gray-400);
-        background: var(--gray-50);
-    }
-    
-    .toggle-btn.active {
-        background: var(--blue-600);
-        color: white;
-        border-color: var(--blue-600);
-    }
-    
     /* Checkbox */
     .form-check {
         display: flex;
@@ -434,10 +377,6 @@
             gap: 1rem;
         }
         
-        .toggle-buttons {
-            flex-direction: column;
-        }
-        
         .btn {
             width: 100%;
         }
@@ -448,23 +387,6 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Toggle buttons for status
-        const toggleButtons = document.querySelectorAll('.toggle-btn');
-        const statusInput = document.getElementById('status');
-        
-        toggleButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Remove active class from all buttons
-                toggleButtons.forEach(b => b.classList.remove('active'));
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Update hidden input value
-                statusInput.value = this.textContent.toLowerCase().trim();
-            });
-        });
-        
         // Show/hide password fields
         const changePasswordCheckbox = document.getElementById('change_password');
         const passwordFields = document.getElementById('password_fields');

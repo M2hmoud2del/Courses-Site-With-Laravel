@@ -31,26 +31,25 @@ class AdminController extends Controller
 
     /* ================= Users ================= */
 
+    public function users()
+    {
+        // Use pagination instead of get()
+        $users = User::latest()->paginate(10);
 
-public function users()
-{
-    // Use pagination instead of get()
-    $users = User::latest()->paginate(10);
+        // Counts
+        $totalUsers = User::count();
+        $students   = User::where('role', 'STUDENT')->count();
+        $instructors= User::where('role', 'INSTRUCTOR')->count();
+        $admins     = User::where('role', 'ADMIN')->count();
 
-    // Counts
-    $totalUsers = User::count();
-    $students   = User::where('role', 'STUDENT')->count();
-    $instructors= User::where('role', 'INSTRUCTOR')->count();
-    $admins     = User::where('role', 'ADMIN')->count();
-
-    return view('admin.users.index', compact(
-        'users',
-        'totalUsers',
-        'students',
-        'instructors',
-        'admins'
-    ));
-}
+        return view('admin.users.index', compact(
+            'users',
+            'totalUsers',
+            'students',
+            'instructors',
+            'admins'
+        ));
+    }
 
     public function createUser()
     {
@@ -78,7 +77,8 @@ public function users()
             'profile_picture' => $request->profile_picture,
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User created successfully.');
     }
 
     public function showUser($id)
@@ -106,13 +106,29 @@ public function users()
 
         $user->update($request->only('name', 'full_name', 'email', 'role'));
 
-    return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User updated successfully.');
     }
 
     public function deleteUser($id)
     {
-        User::findOrFail($id)->delete();
-    return redirect()->route('admin.users.index')->with('success', 'User deleted successfully');
+        $user = User::findOrFail($id);
+        
+        // Check if user has any enrollments or courses before deleting
+        if ($user->enrollments()->exists()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Cannot delete user with active enrollments. Please remove enrollments first.');
+        }
+        
+        if ($user->role == 'INSTRUCTOR' && $user->courses()->exists()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Cannot delete instructor with active courses. Please reassign or delete courses first.');
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'User deleted successfully.');
     }
 
     /* ================= Courses ================= */
@@ -143,7 +159,8 @@ public function users()
 
         Course::create($request->all());
 
-    return redirect()->route('admin.courses.index')->with('success', 'Course created successfully');
+        return redirect()->route('admin.courses.index')
+            ->with('success', 'Course created successfully.');
     }
 
     public function showCourse($id)
@@ -176,13 +193,30 @@ public function users()
 
         $course->update($request->all());
 
-    return redirect()->route('admin.courses.index')->with('success', 'Course updated successfully');
+        return redirect()->route('admin.courses.index')
+            ->with('success', 'Course updated successfully.');
     }
 
     public function deleteCourse($id)
     {
-        Course::findOrFail($id)->delete();
-    return redirect()->route('admin.courses.index')->with('success', 'Course deleted successfully');
+        $course = Course::findOrFail($id);
+        
+        // Check if course has any enrollments before deleting
+        if ($course->enrollments()->exists()) {
+            return redirect()->route('admin.courses.index')
+                ->with('error', 'Cannot delete course with active enrollments. Please remove all enrollments first.');
+        }
+        
+        // Check if course has any pending join requests
+        if ($course->joinRequests()->exists()) {
+            return redirect()->route('admin.courses.index')
+                ->with('error', 'Cannot delete course with pending join requests. Please handle all requests first.');
+        }
+
+        $course->delete();
+
+        return redirect()->route('admin.courses.index')
+            ->with('success', 'Course deleted successfully.');
     }
 
     /* ================= Categories ================= */
@@ -202,7 +236,8 @@ public function users()
 
         Category::create($request->only('name', 'description'));
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category created successfully.');
     }
 
     public function updateCategory(Request $request, $id)
@@ -216,7 +251,8 @@ public function users()
 
         $category->update($request->only('name', 'description'));
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully');
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category updated successfully.');
     }
 
     public function deleteCategory($id)
@@ -230,10 +266,12 @@ public function users()
         }
         
         $category->delete();
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully');
+        
+        return redirect()->route('admin.categories.index')
+            ->with('success', 'Category deleted successfully.');
     }
 
-        /* ================= Statistics ================= */
+    /* ================= Statistics ================= */
 
     public function statistics()
     {
@@ -243,7 +281,6 @@ public function users()
             'instructors'   => User::where('role', 'INSTRUCTOR')->count(),
             'courses'       => Course::count(),
             'activeCourses' => Course::where('is_closed', false)->count(),
-            'draftCourses'  => 0, // Add this field to your courses table if needed
             'closedCourses' => Course::where('is_closed', true)->count(),
         ]);
     }

@@ -66,7 +66,6 @@
    <!-- Main Container -->
     <div class="main-container">
         <div class="dashboard-grid admin-grid">
-            <!-- Sidebar - ضع هنا السايدبار الثابت -->
             <aside class="sidebar">
                 <div class="card">
                     <div class="card-header">
@@ -91,7 +90,7 @@
                         </a>
                         <a href="{{ route('admin.statistics') }}" class="menu-item {{ request()->routeIs('admin.statistics') ? 'active' : '' }}">
                             <i class="fas fa-chart-bar"></i>
-                            <span>Analytics</span>
+                            <span>Statistics</span>
                         </a>
                     </div>
                 </div>

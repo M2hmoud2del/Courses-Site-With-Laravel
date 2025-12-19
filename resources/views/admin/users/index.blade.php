@@ -26,6 +26,23 @@
     </div>
     
     <div class="card-content">
+        @if(session('success'))
+            <div class="alert alert-success" style="margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            </div>
+            @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            </div>
+            @endif
         <!-- Search Bar -->
         <div class="search-bar">
             <div class="input-with-icon">
@@ -120,22 +137,7 @@
         
         <!-- Pagination -->
         <div class="pagination">
-            @if($users instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                {{ $users->links() }}
-            @else
-                <!-- Static pagination for now -->
-                <button class="pagination-btn disabled">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="pagination-btn active">1</button>
-                <button class="pagination-btn">2</button>
-                <button class="pagination-btn">3</button>
-                <span class="pagination-ellipsis">...</span>
-                <button class="pagination-btn">8</button>
-                <button class="pagination-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            @endif
+            {{ $users->links('vendor.pagination.custom') }}
         </div>
     </div>
 </div>
@@ -318,6 +320,36 @@
     .status-active {
         background-color: #dcfce7;
         color: #166534;
+    }
+    .alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    }
+
+    .alert-success {
+        background-color: #dcfce7;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-danger {
+        background-color: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+    }
+
+    .alert i {
+        font-size: 1rem;
+    }
+
+    .alert-success i {
+        color: #059669;
+    }
+
+    .alert-danger i {
+        color: #dc2626;
     }
 </style>
 @endpush
