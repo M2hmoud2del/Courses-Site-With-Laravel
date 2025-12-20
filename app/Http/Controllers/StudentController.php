@@ -36,7 +36,15 @@ class StudentController extends Controller
             ->with(['instructor', 'category'])
             ->get();
 
-        return view('dashboard', compact('user', 'enrolledCourses', 'notifications', 'recommendedCourses'));
+        // Join requests
+        $joinRequests = $user->joinRequests()
+            ->with(['course'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $categories = Category::all();
+
+        return view('dashboard', compact('user', 'enrolledCourses', 'notifications', 'recommendedCourses', 'joinRequests', 'categories'));
     }
 
     public function browse(Request $request)

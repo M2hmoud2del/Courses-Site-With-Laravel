@@ -57,6 +57,15 @@ Route::get('/dashboard', [StudentController::class, 'dashboard'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
+    Route::get('/browse', [StudentController::class, 'browse'])->name('browse');
+    Route::get('/enrolled', [StudentController::class, 'enrolled'])->name('enrolled');
+    Route::post('/join/{course}', [StudentController::class, 'requestJoin'])->name('join');
+    Route::delete('/requests/{request}', [StudentController::class, 'cancelJoinRequest'])->name('requests.cancel');
+    Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
+    Route::patch('/notifications/{id}/read', [StudentController::class, 'markNotificationAsRead'])->name('notifications.read');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
