@@ -46,20 +46,37 @@
                 </div>
             </div>
             <div class="nav-right">
-                <span class="admin-name">
-                    <i class="fas fa-user-shield"></i>
-                    {{ auth()->user()?->name ?? 'Admin' }}
-                </span>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="btn-ghost">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
+                <!-- Simple User Profile Dropdown -->
+                <div class="user-dropdown">
+                    <button class="user-avatar-btn" id="userDropdownBtn">
+                        <div class="admin-avatar">
+                            <div class="avatar-initials">
+                                {{ substr(auth()->user()?->name ?? 'A', 0, 1) }}
+                            </div>
+                            <div class="admin-badge">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                        </div>
+                        <span class="user-name">{{ auth()->user()?->name ?? 'Admin' }}</span>
+                        <i class="fas fa-chevron-down"></i>
                     </button>
-                </form>
+                    
+                    <div class="dropdown-menu" id="userDropdownMenu">
+                        <a href="/profile" class="dropdown-item">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Profile</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-
         </div>
     </nav>
 
@@ -102,7 +119,7 @@
                     </div>
                     <div class="card-content activity-list">
                         <div class="activity-item">
-                            <i class="fas fa-check-circle activity-icon blue"></i>
+                            <i class="fas fa-clock activity-icon blue"></i>
                             <div>
                                 <p class="activity-text"><span id="pending-requests-count">{{ $layoutPendingRequests }}</span> pending join requests</p>
                                 <p class="activity-subtext">
@@ -118,7 +135,7 @@
                             </div>
                         </div>
                         <div class="activity-item">
-                            <i class="fas fa-clock activity-icon yellow"></i>
+                            <i class="fas fa-calendar-alt activity-icon yellow"></i>
                             <div>
                                 <p class="activity-text">Daily backup scheduled</p>
                                 <p class="activity-subtext">2:00 AM</p>
@@ -135,24 +152,38 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
-
     <!-- Scripts -->
     <script src="{{ asset('js/admin.js') }}"></script>
     @stack('scripts')
     
     <script>
-        // Toast functionality
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast show ${type}`;
+        // Simple dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownBtn = document.getElementById('userDropdownBtn');
+            const dropdownMenu = document.getElementById('userDropdownMenu');
             
-            setTimeout(() => {
-                toast.className = 'toast';
-            }, 3000);
-        }
+            if (dropdownBtn && dropdownMenu) {
+                // Toggle dropdown on button click
+                dropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('show');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdownBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                    }
+                });
+                
+                // Close dropdown on menu item click
+                dropdownMenu.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        dropdownMenu.classList.remove('show');
+                    });
+                });
+            }
+        });
     </script>
 </body>
 </html>
