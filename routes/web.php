@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\InstructorController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -50,6 +51,33 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 
+// Instructor Routes
+Route::prefix('instructor')->name('instructor.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [InstructorController::class, 'dashboard'])->name('dashboard');
+    
+    // Course management
+    Route::get('/courses', [InstructorController::class, 'courses'])->name('courses.index');
+    Route::get('/courses/create', [InstructorController::class, 'createCourse'])->name('courses.create');
+    Route::post('/courses', [InstructorController::class, 'storeCourse'])->name('courses.store');
+    Route::get('/courses/{id}', [InstructorController::class, 'showCourse'])->name('courses.show');
+    Route::put('/courses/{id}', [InstructorController::class, 'updateCourse'])->name('courses.update');
+    Route::delete('/courses/{id}', [InstructorController::class, 'deleteCourse'])->name('courses.delete');
+    
+    // Student management
+    Route::get('/courses/{courseId}/students', [InstructorController::class, 'students'])->name('courses.students');
+    
+    // Join requests
+    Route::get('/join-requests', [InstructorController::class, 'joinRequests'])->name('join-requests.index');
+    Route::post('/join-requests/{id}/approve', [InstructorController::class, 'approveJoinRequest'])->name('join-requests.approve');
+    Route::post('/join-requests/{id}/reject', [InstructorController::class, 'rejectJoinRequest'])->name('join-requests.reject');
+    
+    // Enrollments
+    Route::get('/enrollments', [InstructorController::class, 'enrollments'])->name('enrollments.index');
+    Route::delete('/enrollments/{id}', [InstructorController::class, 'removeEnrollment'])->name('enrollments.remove');
+    
+    // Course analytics
+    Route::get('/analytics', [InstructorController::class, 'analytics'])->name('analytics');
+});
 
 
 

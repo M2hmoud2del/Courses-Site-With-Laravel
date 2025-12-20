@@ -44,4 +44,10 @@ class Course extends Model
     {
         return $this->hasMany(JoinRequest::class);
     }
+
+    // Relationship with Enrollments
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
 }
