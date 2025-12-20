@@ -92,6 +92,9 @@ Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->gr
     Route::delete('/requests/{request}', [StudentController::class, 'cancelJoinRequest'])->name('requests.cancel');
     Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
     Route::patch('/notifications/{id}/read', [StudentController::class, 'markNotificationAsRead'])->name('notifications.read');
+    Route::post('/enroll/{course}', [StudentController::class, 'enroll'])->name('enroll');
+    Route::post('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/password', [StudentController::class, 'updatePassword'])->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

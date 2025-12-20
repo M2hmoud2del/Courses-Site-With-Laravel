@@ -38,9 +38,6 @@ function initializeDashboard() {
     const user = getCurrentUser();
 
     // Update profile information
-    const avatarEls = document.querySelectorAll('#profile-avatar');
-    avatarEls.forEach(el => el.textContent = user.name.charAt(0));
-
     const nameEls = document.querySelectorAll('#profile-name');
     nameEls.forEach(el => el.textContent = user.name);
 
@@ -50,10 +47,41 @@ function initializeDashboard() {
     const welcomeText = document.getElementById('welcome-text');
     if (welcomeText) welcomeText.textContent = `Welcome back, ${user.name}! 👋`;
 
-    // Profile view fields
-    const largeAvatar = document.getElementById('profile-avatar-large');
-    if (largeAvatar) largeAvatar.textContent = user.name.charAt(0);
+    // Handle Avatars
+    if (user.profile_picture) {
+        const pdp = '/storage/' + user.profile_picture;
 
+        // Sidebar Avatar
+        const avatarEl = document.querySelector('#profile-avatar');
+        if (avatarEl && avatarEl.parentElement) {
+            avatarEl.style.display = 'none';
+            avatarEl.parentElement.style.backgroundImage = `url('${pdp}')`;
+            avatarEl.parentElement.style.backgroundSize = 'cover';
+            avatarEl.parentElement.style.backgroundPosition = 'center';
+            avatarEl.parentElement.style.color = 'transparent'; // Hide text just in case
+            avatarEl.parentElement.style.border = '2px solid var(--blue-100)';
+        }
+
+        // Profile Page Large Avatar
+        const largeAvatarSpan = document.getElementById('profile-avatar-large');
+        const largeAvatarImg = document.getElementById('profile-avatar-img');
+        if (largeAvatarSpan) largeAvatarSpan.style.display = 'none';
+        if (largeAvatarImg) {
+            largeAvatarImg.src = pdp;
+            largeAvatarImg.style.display = 'block';
+        }
+
+    } else {
+        // Sidebar Avatar
+        const avatarEls = document.querySelectorAll('#profile-avatar');
+        avatarEls.forEach(el => el.textContent = user.name.charAt(0));
+
+        // Profile Page Large Avatar
+        const largeAvatar = document.getElementById('profile-avatar-large');
+        if (largeAvatar) largeAvatar.textContent = user.name.charAt(0);
+    }
+
+    // Profile view fields
     const nameInput = document.getElementById('profile-name-input');
     if (nameInput) nameInput.value = user.name;
 
@@ -61,11 +89,11 @@ function initializeDashboard() {
     if (emailInput) emailInput.value = user.email;
 
     const roleInput = document.getElementById('profile-role-input');
-    // if (roleInput) roleInput.value = user.role; // Assuming user.role exists, or hardcode/skip
+    if (roleInput) roleInput.value = user.role;
 
     // Update notification badge
     const notifications = getUserNotifications(user.id);
-    const unreadCount = notifications.filter(n => !n.is_read).length; // Check is_read from Laravel model
+    const unreadCount = notifications.filter(n => !n.is_read).length;
 
     const badgeDot = document.getElementById('notif-badge');
     if (badgeDot) {
@@ -84,6 +112,89 @@ function initializeDashboard() {
         } else {
             countBadge.style.display = 'none';
         }
+    }
+}
+
+function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const largeAvatarSpan = document.getElementById('profile-avatar-large');
+            const largeAvatarImg = document.getElementById('profile-avatar-img');
+            if (largeAvatarSpan) largeAvatarSpan.style.display = 'none';
+            if (largeAvatarImg) {
+                largeAvatarImg.src = e.target.result;
+                largeAvatarImg.style.display = 'block';
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+async function saveProfile() {
+    const name = document.getElementById('profile-name-input').value;
+    const fileInput = document.getElementById('avatar-upload');
+
+    const formData = new FormData();
+    formData.append('name', name);
+    if (fileInput.files[0]) {
+        formData.append('profile_picture', fileInput.files[0]);
+    }
+
+    try {
+        const response = await fetch('/student/profile', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            showToast('Profile updated successfully', 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            const data = await response.json();
+            showToast(data.message || 'Error updating profile', 'error');
+        }
+    } catch (e) {
+        showToast('System error', 'error');
+    }
+}
+
+async function changePassword() {
+    const current = document.getElementById('current_password').value;
+    const newPass = document.getElementById('new_password').value;
+    const confirmPass = document.getElementById('password_confirmation').value;
+
+    if (newPass !== confirmPass) {
+        showToast('Passwords do not match', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/student/password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                current_password: current,
+                password: newPass,
+                password_confirmation: confirmPass
+            })
+        });
+
+        if (response.ok) {
+            showToast('Password updated successfully', 'success');
+            document.getElementById('password-form').reset();
+        } else {
+            const data = await response.json();
+            showToast(data.message || 'Error updating password', 'error');
+        }
+    } catch (e) {
+        showToast('System error', 'error');
     }
 }
 
@@ -453,15 +564,17 @@ async function openCourseModal(courseId) {
     const actionBtn = document.getElementById('modal-action-btn');
     const isEnrolled = (window.enrolledCourses || []).some(c => c.id === courseId);
 
+
     if (isEnrolled) {
         actionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Enrolled';
         actionBtn.disabled = true;
         actionBtn.classList.remove('btn-primary', 'btn-outline');
         actionBtn.classList.add('btn-ghost');
+        actionBtn.onclick = null;
     } else if (!course.is_closed) {
         actionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Enroll Now';
         actionBtn.onclick = () => {
-            showToast('Enrollment feature coming soon!', 'info');
+            enrollInCourse(course.id);
         };
         actionBtn.disabled = false;
         actionBtn.classList.add('btn-primary');
@@ -504,7 +617,6 @@ async function handleJoinRequest(courseId) {
             closeCourseModal();
 
             // Reload page or update data
-            // Since we rely on window.* variables, we should reload for simplicity to get fresh data
             window.location.reload();
         } else {
             const err = await response.json();
@@ -512,6 +624,31 @@ async function handleJoinRequest(courseId) {
         }
     } catch (e) {
         showToast('System error', 'error');
+    }
+}
+
+async function enrollInCourse(courseId) {
+    try {
+        const response = await fetch(`/student/enroll/${courseId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        if (response.ok) {
+            showToast('Successfully enrolled!', 'success');
+            closeCourseModal();
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            const err = await response.json().catch(() => ({ message: `Server error: ${response.status}` }));
+            console.error('Enrollment error:', err);
+            showToast(err.message || 'Error enrolling in course', 'error');
+        }
+    } catch (e) {
+        console.error('Enrollment exception:', e);
+        showToast('System error: ' + e.message, 'error');
     }
 }
 
@@ -545,21 +682,81 @@ async function markAsRead(notificationId) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         });
-        // We could just update UI locally, but reload is safer for sync
         window.location.reload();
     } catch (e) {
         console.error(e);
     }
 }
 
+async function markAllRead() {
+    const user = getCurrentUser();
+    const notifications = getUserNotifications(user.id);
+    const unread = notifications.filter(n => !n.is_read);
+
+    // Naively mark each as read. Ideally we want a batch endpoint.
+    for (const n of unread) {
+        await fetch(`/student/notifications/${n.id}/read`, {
+            method: 'PATCH',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+    }
+    window.location.reload();
+}
+
 function toggleNotifications() {
-    showToast('Notifications panel coming soon!', 'info');
+    const panel = document.getElementById('notifications-panel');
+    if (panel) {
+        if (panel.style.display === 'none') {
+            renderNotificationsPanel();
+            panel.style.display = 'flex';
+        } else {
+            panel.style.display = 'none';
+        }
+    }
+}
+
+function renderNotificationsPanel() {
+    const user = getCurrentUser();
+    const notifications = getUserNotifications(user.id);
+    const list = document.getElementById('notifications-list');
+    const footer = document.getElementById('notifications-footer');
+
+    if (!list) return;
+
+    if (notifications.length === 0) {
+        list.innerHTML = `
+            <div class="empty-state" style="padding: 2rem 1rem;">
+                <i class="fas fa-bell-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--gray-400);"></i>
+                <p style="font-size: 0.875rem; margin: 0;">No notifications yet</p>
+            </div>
+        `;
+        if (footer) footer.style.display = 'none';
+    } else {
+        list.innerHTML = notifications.map(notif => `
+            <div class="notification-item ${notif.is_read ? 'read' : 'unread'}" onclick="markAsRead(${notif.id})">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                    <strong style="font-size: 0.875rem; color: var(--gray-900);">${notif.is_read ? 'Read' : 'New Notification'}</strong>
+                    <span class="notification-time">${new Date(notif.created_at).toLocaleDateString()}</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--gray-600); margin: 0;">${notif.message || notif.data.message || 'Notification'}</p>
+            </div>
+        `).join('');
+
+        const hasUnread = notifications.some(n => !n.is_read);
+        if (footer) footer.style.display = hasUnread ? 'block' : 'none';
+    }
 }
 
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.className = `toast show ${type}`;
+    toast.textContent = message; // Use textContent for safety
+    // Reset classes
+    toast.className = 'toast';
+    // Force reflow
+    void toast.offsetWidth;
+    toast.classList.add('show', type);
 
     setTimeout(() => {
         toast.classList.remove('show');

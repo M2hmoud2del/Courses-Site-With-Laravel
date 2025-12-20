@@ -45,6 +45,23 @@
         </div>
     </nav>
 
+
+    <!-- Notifications Panel -->
+    <div id="notifications-panel" class="notifications-panel" style="display: none;">
+        <div class="panel-header">
+            <h3>Notifications</h3>
+            <button class="icon-btn" onclick="toggleNotifications()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content">
+            <div id="notifications-list"></div>
+        </div>
+        <div class="panel-footer" id="notifications-footer" style="display: none;">
+             <button class="btn btn-ghost btn-sm btn-full" onclick="markAllRead()" id="mark-all-read-btn">Mark all as read</button>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <div class="main-container">
         <div class="dashboard-grid">
@@ -172,30 +189,73 @@
                 <!-- Profile View -->
                 <div id="view-profile" class="view-content" style="display: none;">
                     <div class="profile-container">
+                        <!-- Profile Settings -->
                         <div class="card">
                             <div class="card-header">
-                                <h3>Profile Settings</h3>
-                                <p>Manage your account information</p>
+                                <h3>Profile Information</h3>
+                                <p>Update your account's profile information.</p>
                             </div>
                             <div class="card-content">
-                                <div class="profile-avatar-large">
-                                    <div class="avatar avatar-xl">
-                                        <span id="profile-avatar-large"></span>
+                                <form id="profile-form" onsubmit="event.preventDefault(); saveProfile();">
+                                    <div class="profile-avatar-section text-center" style="margin-bottom: 2rem;">
+                                        <div class="avatar avatar-xl" style="position: relative; overflow: visible; display: inline-flex;">
+                                            <span id="profile-avatar-large"></span>
+                                            <img id="profile-avatar-img" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                            <button type="button" class="btn-icon-small" onclick="document.getElementById('avatar-upload').click()" 
+                                                style="position: absolute; bottom: 0; right: -0.5rem; background: var(--blue-600); color: white; border-radius: 50%; width: 2rem; height: 2rem; border: 2px solid white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                <i class="fas fa-camera" style="font-size: 0.875rem;"></i>
+                                            </button>
+                                        </div>
+                                        <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+                                        <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.5rem;">Allowed *.jpeg, *.jpg, *.png, *.gif</p>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Name</label>
-                                    <input type="text" id="profile-name-input" class="form-input" disabled>
-                                </div>
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" id="profile-email-input" class="form-input" disabled>
-                                </div>
-                                <div class="form-group">
-                                    <label>Role</label>
-                                    <input type="text" id="profile-role-input" class="form-input capitalize" disabled>
-                                </div>
-                                <button class="btn btn-outline btn-full">Edit Profile (Coming Soon)</button>
+
+                                    <div class="form-group">
+                                        <label for="profile-name-input">Name</label>
+                                        <input type="text" id="profile-name-input" class="form-input" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile-email-input">Email</label>
+                                        <input type="email" id="profile-email-input" class="form-input" disabled style="background-color: var(--gray-50); cursor: not-allowed;">
+                                        <small style="color: var(--gray-500);">Email address cannot be changed.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Role</label>
+                                        <input type="text" id="profile-role-input" class="form-input capitalize" disabled style="background-color: var(--gray-50); cursor: not-allowed;">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Update Password -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Update Password</h3>
+                                <p>Ensure your account is using a long, random password to stay secure.</p>
+                            </div>
+                            <div class="card-content">
+                                <form id="password-form" onsubmit="event.preventDefault(); changePassword();">
+                                    <div class="form-group">
+                                        <label for="current_password">Current Password</label>
+                                        <input type="password" id="current_password" class="form-input" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new_password">New Password</label>
+                                        <input type="password" id="new_password" class="form-input" required minlength="8">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="password_confirmation">Confirm Password</label>
+                                        <input type="password" id="password_confirmation" class="form-input" required minlength="8">
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Save Password</button>
+                                </form>
                             </div>
                         </div>
                     </div>

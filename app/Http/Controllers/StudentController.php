@@ -146,6 +146,71 @@ class StudentController extends Controller
         $notification->update(['is_read' => true]);
         return response()->json($notification);
     }
+    
+    public function enroll(Request $request, $courseId)
+    {
+        try {
+            $user = $request->user();
+            $course = Course::findOrFail($courseId);
+            
+            if ($course->is_closed) {
+                return response()->json(['message' => 'Course is closed for direct enrollment'], 400);
+            }
+
+            // Check if already enrolled
+            if ($user->courses()->where('courses.id', $courseId)->exists()) {
+                return response()->json(['message' => 'Already enrolled'], 400);
+            }
+            
+            // Attach user to course. relying on DB defaults for enrolled_at (CURRENT_TIMESTAMP) and progress (0)
+            $user->courses()->attach($courseId);
+            
+            // Also cancel any pending join requests for this course
+            $user->joinRequests()->where('course_id', $courseId)->delete();
+
+            return response()->json(['message' => 'Successfully enrolled', 'course' => $course], 200);
+        } catch (\Exception $e) {
+            \Log::error('Enrollment error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Enrollment failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        
+        // Validate
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'profile_picture' => 'nullable|image|max:2048', // 2MB max
+        ]);
+
+        $user->name = $request->name;
+
+        if ($request->hasFile('profile_picture')) {
+            // Store locally in public/avatars
+            $path = $request->file('profile_picture')->store('avatars', 'public');
+            $user->profile_picture = $path;
+        }
+
+        $user->save();
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $request->user()->update([
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+        ]);
+
+        return response()->json(['message' => 'Password updated successfully']);
+    }
 
     public function getCategories()
     {
