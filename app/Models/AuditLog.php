@@ -5,17 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class AuditLog extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
+        'actor_id',
+        'action',
+        'details',
+        'timestamp',
     ];
 
-    public function courses()
+    public function actor()
     {
-        return $this->hasMany(Course::class);
+        return $this->belongsTo(User::class, 'actor_id');
     }
 }
