@@ -46,37 +46,43 @@
                 </div>
             </div>
             <div class="nav-right">
-                <!-- Simple User Profile Dropdown -->
-                <div class="user-dropdown">
-                    <button class="user-avatar-btn" id="userDropdownBtn">
-                        <div class="admin-avatar">
-                            <div class="avatar-initials">
-                                {{ substr(auth()->user()?->name ?? 'A', 0, 1) }}
-                            </div>
-                            <div class="admin-badge">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                        </div>
-                        <span class="user-name">{{ auth()->user()?->name ?? 'Admin' }}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    
-                    <div class="dropdown-menu" id="userDropdownMenu">
-                        <a href="/profile" class="dropdown-item">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Profile</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="dropdown-item logout-btn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </button>
-                        </form>
+    <!-- Simple User Profile Dropdown -->
+    <div class="user-dropdown">
+        <button class="user-avatar-btn" id="userDropdownBtn">
+            @if(auth()->user()->profile_picture)
+                <img src="{{ auth()->user()->profile_picture }}" 
+                     alt="{{ auth()->user()->name }}"
+                     class="admin-avatar-image">
+            @else
+                <div class="admin-avatar">
+                    <div class="avatar-initials">
+                        {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+                    </div>
+                    <div class="admin-badge">
+                        <i class="fas fa-crown"></i>
                     </div>
                 </div>
-            </div>
+            @endif
+            <span class="user-name">{{ auth()->user()->name ?? 'Admin' }}</span>
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        
+        <div class="dropdown-menu" id="userDropdownMenu">
+            <a href="/profile" class="dropdown-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="dropdown-item logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
         </div>
     </nav>
 
