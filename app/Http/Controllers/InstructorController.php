@@ -193,6 +193,33 @@ class InstructorController extends Controller
         }
     }
 
+    public function editCourse($id)
+    {
+        $instructorId = Auth::id();
+
+        try {
+            $course = Course::where('instructor_id', $instructorId)
+                ->withCount('enrollments')
+                ->with('enrollments')
+                ->findOrFail($id);
+
+            $categories = Category::all();
+
+            if ($categories->isEmpty()) {
+                return redirect()->route('instructor.courses.index')
+                    ->with('warning', 'Please create at least one category before editing a course.');
+            }
+
+            return view('instructor.courses.edit', compact('course', 'categories'));
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('instructor.courses.index')
+                ->with('error', 'Course not found or you do not have access.');
+        } catch (\Exception $e) {
+            return redirect()->route('instructor.courses.index')
+                ->with('error', 'Failed to load course edit form: ' . $e->getMessage());
+        }
+    }
+
     public function updateCourse(Request $request, $id)
     {
         $instructorId = Auth::id();
@@ -502,7 +529,7 @@ class InstructorController extends Controller
                 ->with('enrollments.student')
                 ->findOrFail($courseId);
 
-            return view('instructor.students.index', compact('course'));
+            return view('instructor.courses.students', compact('course'));
         } catch (\Exception $e) {
             return redirect()->route('instructor.courses.index')
                 ->with('error', 'Failed to load students: ' . $e->getMessage());

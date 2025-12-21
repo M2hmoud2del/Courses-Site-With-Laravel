@@ -50,4 +50,16 @@ class Course extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    // Relationship with CourseContent
+    public function contents()
+    {
+        return $this->hasMany(CourseContent::class);
+    }
+
+    // Get ordered contents
+    public function orderedContents()
+    {
+        return $this->contents()->ordered()->get();
+    }
 }

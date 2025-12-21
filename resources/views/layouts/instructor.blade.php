@@ -31,7 +31,7 @@
                         <span>Dashboard</span>
                     </a>
                     <a href="{{ route('instructor.courses.index') }}"
-                        class="nav-btn {{ request()->routeIs('instructor.courses.*') ? 'active' : '' }}">
+                        class="nav-btn {{ request()->routeIs('instructor.courses.*') || request()->routeIs('instructor.content.*') ? 'active' : '' }}">
                         <i class="fas fa-book-open"></i>
                         <span>Courses</span>
                     </a>
