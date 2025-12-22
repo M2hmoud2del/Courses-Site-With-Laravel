@@ -40,11 +40,6 @@ class CheckRole
      */
     protected function redirectToRoleDashboard(string $role): Response
     {
-        return match($role) {
-            'ADMIN' => redirect()->route('admin.dashboard')->with('error', 'Access denied. You do not have permission to access this page.'),
-            'INSTRUCTOR' => redirect()->route('instructor.dashboard')->with('error', 'Access denied. You do not have permission to access this page.'),
-            'STUDENT' => redirect()->route('dashboard')->with('error', 'Access denied. You do not have permission to access this page.'),
-            default => redirect()->route('login')->with('error', 'Invalid user role.'),
-        };
+        return abort(403, 'Unauthorized');
     }
 }
