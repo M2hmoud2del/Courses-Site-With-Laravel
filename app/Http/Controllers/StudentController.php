@@ -16,6 +16,7 @@ class StudentController extends Controller
         
         // Recent enrolled courses
         $enrolledCourses = $user->courses()
+            ->with(['instructor', 'category'])
             ->orderByPivot('enrolled_at', 'desc')
             ->take(3)
             ->get();
@@ -215,5 +216,53 @@ class StudentController extends Controller
     public function getCategories()
     {
         return response()->json(Category::all());
+    }
+
+    public function showCourse(Request $request, $courseId)
+    {
+        $user = $request->user();
+        
+        // Get the course with instructor and category relationships
+        $course = Course::with(['instructor', 'category'])
+            ->findOrFail($courseId);
+        
+        // Try to load contents if the table exists, otherwise set to empty collection
+        try {
+            $course->load(['contents' => function($query) {
+                $query->orderBy('order');
+            }]);
+        } catch (\Exception $e) {
+            // If course_contents table doesn't exist, just set to empty collection
+            $course->setRelation('contents', collect());
+        }
+        
+        // Check if user is enrolled
+        $enrollment = $user->courses()->where('courses.id', $courseId)->first();
+        
+        if (!$enrollment) {
+            return redirect()->route('dashboard')->with('error', 'You are not enrolled in this course');
+        }
+        
+        // Get progress from pivot
+        $progress = $enrollment->pivot->progress ?? 0;
+        $enrolledAt = $enrollment->pivot->enrolled_at ?? null;
+        
+        // Get data required by student layout
+        $enrolledCourses = $user->courses()
+            ->with(['instructor', 'category'])
+            ->orderByPivot('enrolled_at', 'desc')
+            ->take(3)
+            ->get();
+            
+        $notifications = $user->notifications()
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+            
+        $recommendedCourses = collect(); // Empty for course detail page
+        $joinRequests = collect(); // Empty for course detail page
+        $categories = Category::all();
+        
+        return view('student.course-show', compact('user', 'course', 'progress', 'enrolledAt', 'enrolledCourses', 'notifications', 'recommendedCourses', 'joinRequests', 'categories'));
     }
 }

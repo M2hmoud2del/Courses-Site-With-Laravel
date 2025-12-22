@@ -102,6 +102,7 @@ Route::get('/dashboard', [StudentController::class, 'dashboard'])
 Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
     Route::get('/browse', [StudentController::class, 'browse'])->name('browse');
     Route::get('/enrolled', [StudentController::class, 'enrolled'])->name('enrolled');
+    Route::get('/courses/{course}', [StudentController::class, 'showCourse'])->name('courses.show');
     Route::post('/join/{course}', [StudentController::class, 'requestJoin'])->name('join');
     Route::delete('/requests/{request}', [StudentController::class, 'cancelJoinRequest'])->name('requests.cancel');
     Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
