@@ -627,9 +627,11 @@ async function handleJoinRequest(courseId) {
             window.location.reload();
         } else {
             const err = await response.json();
-            showToast(err.message || 'Error sending request', 'error');
+            console.error('Server error response:', err);
+            showToast(err.error || err.message || 'Error sending request', 'error');
         }
     } catch (e) {
+        console.error('Exception:', e);
         showToast('System error', 'error');
     }
 }

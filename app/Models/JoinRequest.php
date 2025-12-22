@@ -9,6 +9,8 @@ class JoinRequest extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'student_id',
         'course_id',

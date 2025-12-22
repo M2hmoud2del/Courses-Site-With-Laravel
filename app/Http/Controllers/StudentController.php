@@ -18,7 +18,7 @@ class StudentController extends Controller
         $enrolledCourses = $user->courses()
             ->with(['instructor', 'category'])
             ->orderByPivot('enrolled_at', 'desc')
-            ->take(3)
+            // ->take(3)
             ->get();
             
         // Recent notifications
@@ -31,7 +31,6 @@ class StudentController extends Controller
         $recommendedCourses = Course::whereDoesntHave('students', function($q) use ($user) {
                 $q->where('users.id', $user->id);
             })
-            ->where('is_closed', false)
             ->inRandomOrder()
             ->take(4)
             ->with(['instructor', 'category'])
@@ -51,7 +50,6 @@ class StudentController extends Controller
     public function browse(Request $request)
     {
         $query = Course::query()
-            ->where('is_closed', false)
             ->with(['instructor:id,name', 'category:id,name']);
 
         // Search
@@ -101,25 +99,53 @@ class StudentController extends Controller
     
     public function requestJoin(Request $request, $courseId)
     {
-        $user = $request->user();
-        $course = Course::findOrFail($courseId);
-        
-        // Check if already enrolled or requested
-        if ($user->courses()->where('id', $courseId)->exists()) {
-            return response()->json(['message' => 'Already enrolled'], 400);
-        }
-        
-        if ($user->joinRequests()->where('course_id', $courseId)->where('status', 'PENDING')->exists()) {
-             return response()->json(['message' => 'Request already pending'], 400);
-        }
+        try {
+            $user = $request->user();
+            $course = Course::findOrFail($courseId);
+            
+            // Check if already enrolled
+            if ($user->courses()->where('courses.id', $courseId)->exists()) {
+                return response()->json(['message' => 'Already enrolled'], 400);
+            }
+            
+            // Check for existing request (any status)
+            $existingRequest = JoinRequest::where('student_id', $user->id)
+                ->where('course_id', $courseId)
+                ->first();
 
-        $joinRequest = JoinRequest::create([
-            'student_id' => $user->id,
-            'course_id' => $course->id,
-            'status' => 'PENDING',
-        ]);
+            if ($existingRequest) {
+                if ($existingRequest->status === 'PENDING') {
+                    return response()->json(['message' => 'Request already pending'], 400);
+                }
+                
+                // If rejected or any other status, update it back to pending
+                $existingRequest->update([
+                    'status' => 'PENDING',
+                    'request_date' => now(),
+                ]);
 
-        return response()->json($joinRequest, 201);
+                return response()->json($existingRequest, 200);
+            }
+
+            $joinRequest = JoinRequest::create([
+                'student_id' => $user->id,
+                'course_id' => $course->id,
+                'request_date' => now(),
+                'status' => 'PENDING',
+            ]);
+
+            return response()->json($joinRequest, 201);
+        } catch (\Exception $e) {
+            \Log::error('Join request error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'course_id' => $courseId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Failed to create join request',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function cancelJoinRequest(Request $request, $requestId)
@@ -251,7 +277,7 @@ class StudentController extends Controller
         $enrolledCourses = $user->courses()
             ->with(['instructor', 'category'])
             ->orderByPivot('enrolled_at', 'desc')
-            ->take(3)
+            // ->take(3)
             ->get();
             
         $notifications = $user->notifications()

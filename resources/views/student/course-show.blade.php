@@ -84,51 +84,6 @@
                     </div>
                 </div>
 
-                <!-- Course Content/Syllabus -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-list"></i> Course Content</h3>
-                        @if($course->contents && $course->contents->count() > 0)
-                            <span class="badge badge-secondary">{{ $course->contents->count() }} {{ Str::plural('item', $course->contents->count()) }}</span>
-                        @endif
-                    </div>
-                    <div class="card-content">
-                        @if($course->contents && $course->contents->count() > 0)
-                            <div class="content-list">
-                                @foreach($course->contents as $index => $content)
-                                    <div class="content-item">
-                                        <div class="content-item-header">
-                                            <div class="content-number">{{ $index + 1 }}</div>
-                                            <div class="content-info">
-                                                <h4>{{ $content->title }}</h4>
-                                                @if($content->description)
-                                                    <p>{{ $content->description }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="content-type-badge">
-                                            @if($content->type === 'video')
-                                                <i class="fas fa-play-circle"></i> Video
-                                            @elseif($content->type === 'document')
-                                                <i class="fas fa-file-alt"></i> Document
-                                            @elseif($content->type === 'quiz')
-                                                <i class="fas fa-question-circle"></i> Quiz
-                                            @else
-                                                <i class="fas fa-file"></i> {{ ucfirst($content->type) }}
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="empty-state">
-                                <i class="fas fa-folder-open fa-3x"></i>
-                                <p>No course content has been added yet. Check back later!</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
                 <!-- Course Information -->
                 <div class="card">
                     <div class="card-header">
