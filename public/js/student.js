@@ -49,7 +49,8 @@ function initializeDashboard() {
 
     // Handle Avatars
     if (user.profile_picture) {
-        const pdp = '/storage/' + user.profile_picture;
+        // Use the profile_picture path directly (it already contains the full path)
+        const pdp = user.profile_picture;
 
         // Sidebar Avatar
         const avatarEl = document.querySelector('#profile-avatar');
@@ -330,6 +331,12 @@ function updateDashboardView() {
 }
 
 function changeView(view) {
+    // Redirect to existing profile page
+    if (view === 'profile') {
+        window.location.href = '/profile';
+        return;
+    }
+
     currentView = view;
 
     // Hide all views
@@ -479,7 +486,7 @@ function updateEnrolledView() {
                                 <div class="progress-fill ${progressColors[index % progressColors.length]}" style="width: ${progress}%"></div>
                             </div>
                         </div>
-                        <button class="btn btn-primary btn-full" style="margin-top: 1rem;">Continue Learning</button>
+                        <button class="btn btn-primary btn-full" style="margin-top: 1rem;" onclick="window.location.href='/student/courses/${course.id}'">Continue Learning</button>
                     </div>
                 </div>
             `;
