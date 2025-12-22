@@ -53,10 +53,10 @@
                 </div>
             </div>
             <div class="nav-right">
-                <span class="admin-name">
+                <a href="/profile" class="admin-name">
                     <i class="fas fa-user-tie"></i>
                     {{ auth()->user()?->name ?? 'Instructor' }}
-                </span>
+                </a>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
