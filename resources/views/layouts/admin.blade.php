@@ -48,24 +48,35 @@
             <div class="nav-right">
     <!-- Simple User Profile Dropdown -->
     <div class="user-dropdown">
-        <button class="user-avatar-btn" id="userDropdownBtn">
-            @if(auth()->user()->profile_picture)
-                <img src="{{ auth()->user()->profile_picture }}" 
-                     alt="{{ auth()->user()->name }}"
-                     class="admin-avatar-image">
-            @else
-                <div class="admin-avatar">
-                    <div class="avatar-initials">
-                        {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
-                    </div>
-                    <div class="admin-badge">
-                        <i class="fas fa-crown"></i>
-                    </div>
+<button class="user-avatar-btn" id="userDropdownBtn">
+    @if(auth()->check())
+        @if(auth()->user()->profile_picture)
+            <img src="{{ auth()->user()->profile_picture }}" 
+                 alt="{{ auth()->user()->name }}"
+                 class="admin-avatar-image">
+        @else
+            <div class="admin-avatar">
+                <div class="avatar-initials">
+                    {{ substr(auth()->user()->name, 0, 1) }}
                 </div>
-            @endif
-            <span class="user-name">{{ auth()->user()->name ?? 'Admin' }}</span>
-            <i class="fas fa-chevron-down"></i>
-        </button>
+                <div class="admin-badge">
+                    <i class="fas fa-crown"></i>
+                </div>
+            </div>
+        @endif
+
+        <span class="user-name">{{ auth()->user()->name }}</span>
+    @else
+        {{-- Guest --}}
+        <div class="admin-avatar">
+            <div class="avatar-initials">G</div>
+        </div>
+        <span class="user-name">Guest</span>
+    @endif
+
+    <i class="fas fa-chevron-down"></i>
+</button>
+
         
         <div class="dropdown-menu" id="userDropdownMenu">
             <a href="/profile" class="dropdown-item">
