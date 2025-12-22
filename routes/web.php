@@ -31,8 +31,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:ADMIN'])->grou
     // Courses
     Route::prefix('courses')->name('courses.')->group(function () {
         Route::get('/', [AdminController::class, 'courses'])->name('index');
-        Route::get('/create', [AdminController::class, 'createCourse'])->name('create');
-        Route::post('/store', [AdminController::class, 'storeCourse'])->name('store');
         Route::get('/{id}', [AdminController::class, 'showCourse'])->name('show');
         Route::get('/{id}/edit', [AdminController::class, 'editCourse'])->name('edit');
         Route::put('/{id}/update', [AdminController::class, 'updateCourse'])->name('update');

@@ -348,113 +348,7 @@ class AdminController extends Controller
         }
     }
 
-    public function createCourse()
-    {
-        try {
-            $categories = Category::all();
-            $instructors = User::where('role', 'INSTRUCTOR')->get();
-            
-            if ($categories->isEmpty()) {
-                return redirect()->route('admin.categories.index')
-                    ->with('warning', 'Please create at least one category before adding a course.');
-            }
-            
-            if ($instructors->isEmpty()) {
-                return redirect()->route('admin.users.index')
-                    ->with('warning', 'Please create at least one instructor before adding a course.');
-            }
 
-            return view('admin.courses.create', compact('categories', 'instructors'));
-            
-        } catch (\Exception $e) {
-            return redirect()->route('admin.courses.index')
-                ->with('error', 'Failed to load course creation form: ' . $e->getMessage());
-        }
-    }
-
-    public function storeCourse(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'title'         => [
-                    'required',
-                    'string',
-                    'max:255',
-                    'min:3',
-                    'regex:/^[a-zA-Z0-9\s\-_\.\,\!\?\(\)\:]+$/'
-                ],
-                'description'   => [
-                    'required',
-                    'string',
-                    'min:10',
-                    'max:2000'
-                ],
-                'price'         => [
-                    'required',
-                    'numeric',
-                    'min:0',
-                    'max:999999.99',
-                    'regex:/^\d+(\.\d{1,2})?$/'
-                ],
-                'category_id'   => [
-                    'required',
-                    'exists:categories,id'
-                ],
-                'instructor_id' => [
-                    'required',
-                    'exists:users,id'
-                ],
-                'is_closed'     => [
-                    'nullable',
-                    'boolean'
-                ],
-            ], [
-                'title.regex' => 'Title can only contain letters, numbers, spaces and basic punctuation.',
-                'price.regex' => 'Price must be a valid number with up to 2 decimal places.',
-                'price.max' => 'Price cannot exceed 999,999.99.',
-                'description.min' => 'Description must be at least 10 characters.',
-                'description.max' => 'Description cannot exceed 2000 characters.',
-            ]);
-
-            // Verify instructor exists and is actually an instructor
-            $instructor = User::find($validated['instructor_id']);
-            if (!$instructor || $instructor->role !== 'INSTRUCTOR') {
-                throw ValidationException::withMessages([
-                    'instructor_id' => 'Selected user is not an instructor.'
-                ]);
-            }
-
-            // Verify category exists
-            $category = Category::find($validated['category_id']);
-            if (!$category) {
-                throw ValidationException::withMessages([
-                    'category_id' => 'Selected category does not exist.'
-                ]);
-            }
-
-            Course::create([
-                'title'         => strip_tags($validated['title']),
-                'description'   => strip_tags($validated['description']),
-                'price'         => number_format($validated['price'], 2, '.', ''),
-                'category_id'   => $validated['category_id'],
-                'instructor_id' => $validated['instructor_id'],
-                'is_closed'     => $request->has('is_closed') ? $validated['is_closed'] : false,
-            ]);
-
-            return redirect()->route('admin.courses.index')
-                ->with('success', 'Course created successfully.');
-                
-        } catch (ValidationException $e) {
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput();
-                
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Failed to create course: ' . $e->getMessage())
-                ->withInput();
-        }
-    }
 
     public function showCourse($id)
     {
@@ -636,17 +530,7 @@ class AdminController extends Controller
                     ->with('error', 'Course not found.');
             }
 
-            // Check if course has any enrollments before deleting
-            if ($course->enrollments_count > 0) {
-                return redirect()->route('admin.courses.index')
-                    ->with('error', "Cannot delete course with {$course->enrollments_count} active enrollment(s). Please remove all enrollments first.");
-            }
-            
-            // Check if course has any pending join requests
-            if ($course->join_requests_count > 0) {
-                return redirect()->route('admin.courses.index')
-                    ->with('error', "Cannot delete course with {$course->join_requests_count} pending join request(s). Please handle all requests first.");
-            }
+
 
             $courseTitle = $course->title;
             $course->delete();

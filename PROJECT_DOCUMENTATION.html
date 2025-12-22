@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Documentation: Courses Site Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css"
+        rel="stylesheet">
+    <!-- Using a simplified, stable version of Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 15px;
+            }
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            background-color: #f6f8fa;
+            padding: 20px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body class="markdown-body">
+    <h1>Project Documentation: Courses Site Platform</h1>
+
+    <h2>1. Project Description</h2>
+    <p>The <strong>Courses Site Platform</strong> is a web-based educational management system built with the
+        <strong>Laravel</strong> framework. It facilitates the interaction between three primary user roles:
+        <strong>Students</strong>, <strong>Instructors</strong>, and <strong>Admins</strong>. The platform allows
+        Instructors to publish and manage courses, Students to browse, enroll, and track their progress, and Admins to
+        oversee the entire ecosystem, including user and content management.
+    </p>
+    <p>The system features a robust authentication system with role-based access control (RBAC), ensuring secure and
+        appropriate access to features. Key functionalities include course catalog browsing with filters, student
+        enrollment workflows (direct or request-based), dashboard analytics for instructors, and profile management.</p>
+
+    <hr>
+
+    <h2>2. Requirements Analysis</h2>
+
+    <h3>2.1 Functional Requirements</h3>
+    <p>These requirements define the specific behaviors and functions the system supports.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category</th>
+                <th>Requirement Description</th>
+                <th>Actor(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>FR-01</strong></td>
+                <td><strong>Authentication</strong></td>
+                <td>Users must be able to register, login, and logout securely.</td>
+                <td>All</td>
+            </tr>
+            <tr>
+                <td><strong>FR-02</strong></td>
+                <td><strong>Profile Mgmt</strong></td>
+                <td>Users can update their profile information (name, avatar) and change passwords.</td>
+                <td>All</td>
+            </tr>
+            <tr>
+                <td><strong>FR-03</strong></td>
+                <td><strong>Course Mgmt</strong></td>
+                <td>Instructors can create, edit, update, and delete their courses.</td>
+                <td>Instructor</td>
+            </tr>
+            <tr>
+                <td><strong>FR-04</strong></td>
+                <td><strong>Content Mgmt</strong></td>
+                <td>Instructors can add chapters and lessons (content) to their courses.</td>
+                <td>Instructor</td>
+            </tr>
+            <tr>
+                <td><strong>FR-05</strong></td>
+                <td><strong>Browsing</strong></td>
+                <td>Students can browse courses and filter by category, price, or search by keyword.</td>
+                <td>Student</td>
+            </tr>
+            <tr>
+                <td><strong>FR-06</strong></td>
+                <td><strong>Enrollment</strong></td>
+                <td>Students can enroll in open courses immediately or request to join restricted courses.</td>
+                <td>Student</td>
+            </tr>
+            <tr>
+                <td><strong>FR-07</strong></td>
+                <td><strong>Approvals</strong></td>
+                <td>Instructors can approve or reject course join requests from students.</td>
+                <td>Instructor</td>
+            </tr>
+            <tr>
+                <td><strong>FR-08</strong></td>
+                <td><strong>Dashboard</strong></td>
+                <td>Students have a dashboard showing enrolled courses, notifications, and recommendations.</td>
+                <td>Student</td>
+            </tr>
+            <tr>
+                <td><strong>FR-09</strong></td>
+                <td><strong>User Admin</strong></td>
+                <td>Admins can view, create, edit, and delete user accounts.</td>
+                <td>Admin</td>
+            </tr>
+             <tr>
+                <td><strong>FR-10</strong></td>
+                <td><strong>View Analytics</strong></td>
+                <td>Admins can view platform usage, course activity, user engagement, and system performance. </td>
+                <td>Admin</td>
+            </tr>
+              <tr>
+                <td><strong>FR-11</strong></td>
+                <td><strong>Manage Categories</strong></td>
+                <td>Admins can view,create and delete course categories </td>
+                <td>Admin</td>
+            </tr>
+             <tr>
+                <td><strong>FR-12</strong></td>
+                <td><strong>Manage Courses</strong></td>
+                <td>Admins can view, edit and delete courses </td>
+                <td>Admin</td>
+            </tr>
+            <tr>
+                <td><strong>FR-13</strong></td>
+                <td><strong>Notifications</strong></td>
+                <td>Users receive notifications for important events (e.g., enrollment approval).</td>
+                <td>Student</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.2 Non-Functional Requirements</h3>
+    <p>These requirements define system attributes such as security, reliability, and performance.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Requirement Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>NFR-01</strong></td>
+                <td><strong>Security</strong></td>
+                <td>Passwords must be hashed. Access to routes must be protected by Role-Based Access Control (RBAC).
+                </td>
+            </tr>
+            <tr>
+                <td><strong>NFR-02</strong></td>
+                <td><strong>Performance</strong></td>
+                <td>Pages should load within 2 seconds under normal load. Database queries should be optimized.</td>
+            </tr>
+            <tr>
+                <td><strong>NFR-03</strong></td>
+                <td><strong>Usability</strong></td>
+                <td>The interface should be responsive and accessible on both desktop and mobile devices.</td>
+            </tr>
+            <tr>
+                <td><strong>NFR-04</strong></td>
+                <td><strong>Reliability</strong></td>
+                <td>The system should handle input validation errors gracefully and provide user-friendly feedback.</td>
+            </tr>
+            <tr>
+                <td><strong>NFR-05</strong></td>
+                <td><strong>Scalability</strong></td>
+                <td>The database schema should support future expansion of course types and user roles.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>3. System Modeling</h2>
+
+    <h3>3.1 Use Case Diagram</h3>
+    <p>The following diagram illustrates the interaction between actors and the system's major use cases.</p>
+
+    <pre class="mermaid">usecaseDiagram
+    actor Student
+    actor Instructor
+    actor Admin
+
+    package "Course Platform System" {
+        usecase "Login / Register" as UC1
+        usecase "Manage Profile" as UC2
+        
+        usecase "Browse Courses" as UC3
+        usecase "Enroll in Course" as UC4
+        usecase "View Progress" as UC5
+        
+        usecase "Manage Courses (CRUD)" as UC6
+        usecase "Manage Course Content" as UC7
+        usecase "Approve Join Requests" as UC8
+        usecase "View Enrollments" as UC9
+        
+        usecase "Manage Users" as UC10
+        usecase "Manage Categories" as UC11
+    }
+
+    Student --> UC1
+    Student --> UC2
+    Student --> UC3
+    Student --> UC4
+    Student --> UC5
+
+    Instructor --> UC1
+    Instructor --> UC2
+    Instructor --> UC6
+    Instructor --> UC7
+    Instructor --> UC8
+    Instructor --> UC9
+
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC10
+    Admin --> UC11
+</pre>
+
+    <h3>3.2 Class Diagram</h3>
+    <p>This diagram represents the static structure of the system's primary models and their relationships.</p>
+
+    <pre class="mermaid">classDiagram
+    class User {
+        +Integer id
+        +String name
+        +String email
+        +String role
+        +isStudent()
+        +isInstructor()
+        +isAdmin()
+    }
+
+    class Course {
+        +Integer id
+        +String title
+        +Decimal price
+        +Boolean is_closed
+        +students()
+        +instructor()
+        +contents()
+    }
+
+    class Enrollment {
+        +Integer id
+        +DateTime enrolled_at
+        +Decimal progress
+    }
+
+    class Category {
+        +Integer id
+        +String name
+    }
+
+    class JoinRequest {
+        +Integer id
+        +String status
+        +DateTime request_date
+    }
+
+    class CourseContent {
+        +Integer id
+        +String title
+        +String type
+        +Integer order
+    }
+
+    User "1" --> "*" Course : teaches (Instructor)
+    User "*" --> "*" Course : enrolls (Student)
+    User "1" .. "*" Enrollment
+    Course "1" .. "*" Enrollment
+    Course "1" --> "*" JoinRequest
+    User "1" --> "*" JoinRequest
+    Category "1" --> "*" Course
+    Course "1" --> "*" CourseContent
+</pre>
+
+    <hr>
+
+    <h2>4. Test Cases & Verification</h2>
+    <p>This section outlines selected test cases covering both functional (Black Box) and structural (White Box) aspects
+        of the system.</p>
+
+    <h3>4.1 Black Box Testing (Functional)</h3>
+    <p>Focuses on input/output without knowledge of internal code structure.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Test Case ID</th>
+                <th>Description</th>
+                <th>Pre-conditions</th>
+                <th>Test Steps</th>
+                <th>Expected Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>BB-01</strong></td>
+                <td><strong>Direct Enrollment</strong></td>
+                <td>Student logged in, Course is "Open"</td>
+                <td>1. Navigate to Course page<br>2. Click "Enroll"<br>3. Confirm action</td>
+                <td>Success message displayed; Course appears in "My Courses".</td>
+            </tr>
+            <tr>
+                <td><strong>BB-02</strong></td>
+                <td><strong>Restricted Enrollment</strong></td>
+                <td>Student logged in, Course is "Closed/Private"</td>
+                <td>1. Navigate to Course page<br>2. Click "Request to Join"</td>
+                <td>Success message displayed; Request status becomes "Pending".</td>
+            </tr>
+            <tr>
+                <td><strong>BB-03</strong></td>
+                <td><strong>Search Functionality</strong></td>
+                <td>Student on "Browse" page</td>
+                <td>1. Enter keyword "Laravel"<br>2. Click Search</td>
+                <td>List updates to show only courses containing "Laravel" in title.</td>
+            </tr>
+            <tr>
+                <td><strong>BB-04</strong></td>
+                <td><strong>Instructor Course Creation</strong></td>
+                <td>Instructor logged in</td>
+                <td>1. Click "Create Course"<br>2. Fill details (Title, Price)<br>3. Submit</td>
+                <td>Course is created and visible in Instructor dashboard.</td>
+            </tr>
+            <tr>
+                <td><strong>BB-05</strong></td>
+                <td><strong>Permission Denied</strong></td>
+                <td>Student logged in</td>
+                <td>1. Attempt to access <code>/admin/dashboard</code> URL directly</td>
+                <td>System redirects to home or shows 403 Forbidden error.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>4.2 White Box Testing (Structural)</h3>
+    <p>Focuses on internal logic, validation paths, and code coverage. (References
+        <code>tests/Feature/StudentControllerTest.php</code>)
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Test Case ID</th>
+                <th>Description</th>
+                <th>Component / Method</th>
+                <th>Test Logic / Path</th>
+                <th>Expected Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>WB-01</strong></td>
+                <td><strong>Validation: Profile Update</strong></td>
+                <td><code>StudentController@updateProfile</code></td>
+                <td><strong>Input</strong>: Empty name string.<br><strong>Path</strong>: <code>validate()</code>
+                    fails.<br><strong>Check</strong>: Validation error returned.</td>
+                <td>HTTP 422 Unprocessable Entity; Error key: <code>name</code>.</td>
+            </tr>
+            <tr>
+                <td><strong>WB-02</strong></td>
+                <td><strong>Logic: Duplicate Enrollment</strong></td>
+                <td><code>StudentController@requestJoin</code></td>
+                <td><strong>Input</strong>: Course ID where user is already enrolled.<br><strong>Path</strong>: Check
+                    <code>enrollments</code> table -> If exists -> Abort.<br><strong>Check</strong>: Controller returns
+                    error.
+                </td>
+                <td>HTTP 400 Bad Request; Message: "Already enrolled".</td>
+            </tr>
+            <tr>
+                <td><strong>WB-03</strong></td>
+                <td><strong>Logic: Password Change</strong></td>
+                <td><code>StudentController@updatePassword</code></td>
+                <td><strong>Input</strong>: Incorrect <code>current_password</code>.<br><strong>Path</strong>:
+                    <code>Hash::check</code> fails.<br><strong>Check</strong>: Validation rule halts execution.
+                </td>
+                <td>HTTP 422 Unprocessable Entity; Error key: <code>current_password</code>.</td>
+            </tr>
+            <tr>
+                <td><strong>WB-04</strong></td>
+                <td><strong>Integration: Enrollment Flow</strong></td>
+                <td><code>StudentController@enroll</code></td>
+                <td><strong>Action</strong>: Successful enrollment.<br><strong>Side Effect</strong>: Check if pending
+                    <code>JoinRequest</code> is deleted (cleanup logic).
+                </td>
+                <td>Database: New <code>enrollment</code> row exists; <code>join_request</code> row is deleted.</td>
+            </tr>
+            <tr>
+                <td><strong>WB-05</strong></td>
+                <td><strong>Middleware: Role Access</strong></td>
+                <td><code>Middleware\Role</code></td>
+                <td><strong>Action</strong>: User with role 'STUDENT' accesses Protected
+                    Route.<br><strong>Logic</strong>: <code>Auth::user()->role === 'STUDENT'</code> check.</td>
+                <td>Access Granted (HTTP 200). (Contrast with BB-05).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <p><em>Documentation generated by Antigravity AI.</em></p>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });
+    </script>
+</body>
+
+</html>

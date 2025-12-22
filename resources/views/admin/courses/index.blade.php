@@ -14,10 +14,7 @@
             <h3>All Courses</h3>
             <p>Total: {{ $courses->total() }} courses</p>
         </div>
-        <a href="{{ route('admin.courses.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus-circle"></i>
-            Add Course
-        </a>
+
     </div>
     
     <div class="card-content">
