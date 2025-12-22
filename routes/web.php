@@ -13,7 +13,7 @@ Route::get('/', function () {
 
 
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:ADMIN'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
@@ -53,7 +53,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 
 // Instructor Routes
-Route::prefix('instructor')->name('instructor.')->middleware(['auth'])->group(function () {
+Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'role:INSTRUCTOR'])->group(function () {
     Route::get('/dashboard', [InstructorController::class, 'dashboard'])->name('dashboard');
 
     // Course management
@@ -96,10 +96,10 @@ Route::prefix('instructor')->name('instructor.')->middleware(['auth'])->group(fu
 
 
 Route::get('/dashboard', [StudentController::class, 'dashboard'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'role:STUDENT'])
     ->name('dashboard');
 
-Route::middleware(['auth', 'verified'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:STUDENT'])->prefix('student')->name('student.')->group(function () {
     Route::get('/browse', [StudentController::class, 'browse'])->name('browse');
     Route::get('/enrolled', [StudentController::class, 'enrolled'])->name('enrolled');
     Route::get('/courses/{course}', [StudentController::class, 'showCourse'])->name('courses.show');
