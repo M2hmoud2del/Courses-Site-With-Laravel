@@ -1,0 +1,172 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'arial'}}}%%
+
+classDiagram
+    direction TB
+    
+    %% ===== ABSTRACT USER CLASS =====
+    class User {
+        <<abstract>>
+        #int id
+        #string name
+        #string full_name
+        #string email
+        #timestamp email_verified_at
+        #string password
+        #string remember_token
+        #string profile_picture
+        #enum role
+        #timestamp created_at
+        #timestamp updated_at
+        --
+        +isStudent() bool
+        +isInstructor() bool
+        +isAdmin() bool
+    }
+
+    %% ===== STUDENT CLASS =====
+    class Student {
+        <<extends User>>
+        --
+        +browseCourses(filters) Collection
+        +enrollInCourse(courseId) bool
+        +requestJoinCourse(courseId) JoinRequest
+        +cancelJoinRequest(requestId) bool
+        +viewCourse(courseId) Course
+        +getProgress(courseId) int
+        +updateProfile(data) bool
+        +updatePassword(password) bool
+    }
+
+    %% ===== INSTRUCTOR CLASS =====
+    class Instructor {
+        <<extends User>>
+        --
+        +createCourse(data) Course
+        +updateCourse(courseId, data) bool
+        +deleteCourse(courseId) bool
+        +viewJoinRequests() Collection
+        +approveJoinRequest(requestId) bool
+        +rejectJoinRequest(requestId) bool
+        +viewEnrollments() Collection
+        +removeEnrollment(enrollmentId) bool
+        +viewAnalytics() array
+        +viewStudents(courseId) Collection
+        +sendNotification(userId, message) bool
+    }
+
+    %% ===== ADMIN CLASS =====
+    class Admin {
+        <<extends User>>
+        --
+        +manageUsers() Collection
+        +createUser(data) User
+        +updateUser(userId, data) bool
+        +deleteUser(userId) bool
+        +manageCourses() Collection
+        +updateCourse(courseId, data) bool
+        +deleteCourse(courseId) bool
+        +manageCategories() Collection
+        +createCategory(data) Category
+        +updateCategory(categoryId, data) bool
+        +deleteCategory(categoryId) bool
+        +viewStatistics() array
+        +viewDashboard() array
+    }
+
+    %% ===== CATEGORY =====
+    class Category {
+        +int id
+        +string name
+        +text description
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== COURSE =====
+    class Course {
+        +int id
+        +string title
+        +text description
+        +decimal price
+        +bool is_closed
+        +int instructor_id
+        +int category_id
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== COURSE CONTENT =====
+    class CourseContent {
+        +int id
+        +int course_id
+        +string title
+        +text description
+        +enum content_type
+        +string external_link
+        +text content
+        +int order
+        +timestamp created_at
+        +timestamp updated_at
+        --
+        +isExternalLink() bool
+    }
+
+    %% ===== ENROLLMENT (Junction) =====
+    class Enrollment {
+        +int id
+        +int student_id
+        +int course_id
+        +timestamp enrolled_at
+        +int progress
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== JOIN REQUEST =====
+    class JoinRequest {
+        +int id
+        +int student_id
+        +int course_id
+        +timestamp request_date
+        +enum status
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== NOTIFICATION =====
+    class Notification {
+        +int id
+        +int recipient_id
+        +string message
+        +timestamp date
+        +bool is_read
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== AUDIT LOG =====
+    class AuditLog {
+        +int id
+        +int actor_id
+        +string action
+        +text details
+        +timestamp timestamp
+        +timestamp created_at
+        +timestamp updated_at
+    }
+
+    %% ===== INHERITANCE =====
+    User <|-- Student : extends
+    User <|-- Instructor : extends
+    User <|-- Admin : extends
+
+    %% ===== RELATIONSHIPS =====
+    Student "1" --> "*" Enrollment : enrolls
+    Student "1" --> "*" JoinRequest : submits
+    Instructor "1" --> "*" Course : teaches
+    Category "1" --> "*" Course : contains
+    Course "1" --> "*" Enrollment : has
+    Course "1" --> "*" JoinRequest : receives
+    Course "1" --> "*" CourseContent : contains
+    User "1" --> "*" Notification : receives
+    User "1" --> "*" AuditLog : performs

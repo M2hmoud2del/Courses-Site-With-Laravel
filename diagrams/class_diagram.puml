@@ -1,0 +1,242 @@
+@startuml CourseSite_ClassDiagram
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam linetype ortho
+
+' ========================================
+' ABSTRACT USER CLASS
+' ========================================
+abstract class User {
+    # id : int
+    # name : string
+    # full_name : string
+    # email : string
+    # email_verified_at : timestamp
+    # password : string
+    # remember_token : string
+    # profile_picture : string
+    # role : RoleEnum
+    # created_at : timestamp
+    # updated_at : timestamp
+    --
+    + isStudent() : bool
+    + isInstructor() : bool
+    + isAdmin() : bool
+}
+
+' ========================================
+' STUDENT CLASS (inherits User)
+' ========================================
+class Student {
+    --
+    + browseCourses(filters) : Collection
+    + enrollInCourse(courseId) : bool
+    + requestJoinCourse(courseId) : JoinRequest
+    + cancelJoinRequest(requestId) : bool
+    + viewCourse(courseId) : Course
+    + getProgress(courseId) : int
+    + updateProfile(data) : bool
+    + updatePassword(password) : bool
+}
+
+' ========================================
+' INSTRUCTOR CLASS (inherits User)
+' ========================================
+class Instructor {
+    --
+    + createCourse(data) : Course
+    + updateCourse(courseId, data) : bool
+    + deleteCourse(courseId) : bool
+    + viewJoinRequests() : Collection
+    + approveJoinRequest(requestId) : bool
+    + rejectJoinRequest(requestId) : bool
+    + viewEnrollments() : Collection
+    + removeEnrollment(enrollmentId) : bool
+    + viewAnalytics() : array
+    + viewStudents(courseId) : Collection
+    + sendNotification(userId, message) : bool
+}
+
+' ========================================
+' ADMIN CLASS (inherits User)
+' ========================================
+class Admin {
+    --
+    + manageUsers() : Collection
+    + createUser(data) : User
+    + updateUser(userId, data) : bool
+    + deleteUser(userId) : bool
+    + manageCourses() : Collection
+    + updateCourse(courseId, data) : bool
+    + deleteCourse(courseId) : bool
+    + manageCategories() : Collection
+    + createCategory(data) : Category
+    + updateCategory(categoryId, data) : bool
+    + deleteCategory(categoryId) : bool
+    + viewStatistics() : array
+    + viewDashboard() : array
+}
+
+' ========================================
+' CATEGORY CLASS
+' ========================================
+class Category {
+    + id : int
+    + name : string
+    + description : text
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' COURSE CLASS
+' ========================================
+class Course {
+    + id : int
+    + title : string
+    + description : text
+    + price : decimal(10,2)
+    + is_closed : boolean
+    + instructor_id : int <<FK>>
+    + category_id : int <<FK>>
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' COURSE CONTENT CLASS
+' ========================================
+class CourseContent {
+    + id : int
+    + course_id : int <<FK>>
+    + title : string
+    + description : text
+    + content_type : ContentTypeEnum
+    + external_link : string
+    + content : text
+    + order : int
+    + created_at : timestamp
+    + updated_at : timestamp
+    --
+    + isExternalLink() : bool
+}
+
+' ========================================
+' ENROLLMENT CLASS (Junction Table)
+' ========================================
+class Enrollment {
+    + id : int
+    + student_id : int <<FK>>
+    + course_id : int <<FK>>
+    + enrolled_at : timestamp
+    + progress : int
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' JOIN REQUEST CLASS
+' ========================================
+class JoinRequest {
+    + id : int
+    + student_id : int <<FK>>
+    + course_id : int <<FK>>
+    + request_date : timestamp
+    + status : RequestStatusEnum
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' NOTIFICATION CLASS
+' ========================================
+class Notification {
+    + id : int
+    + recipient_id : int <<FK>>
+    + message : string
+    + date : timestamp
+    + is_read : boolean
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' AUDIT LOG CLASS
+' ========================================
+class AuditLog {
+    + id : int
+    + actor_id : int <<FK>>
+    + action : string
+    + details : text
+    + timestamp : timestamp
+    + created_at : timestamp
+    + updated_at : timestamp
+}
+
+' ========================================
+' ENUMERATIONS
+' ========================================
+enum RoleEnum {
+    STUDENT
+    INSTRUCTOR
+    ADMIN
+}
+
+enum RequestStatusEnum {
+    PENDING
+    ACCEPTED
+    REJECTED
+}
+
+enum ContentTypeEnum {
+    LESSON
+    VIDEO
+    DOCUMENT
+    LINK
+}
+
+' ========================================
+' INHERITANCE RELATIONSHIPS
+' ========================================
+User <|-- Student
+User <|-- Instructor
+User <|-- Admin
+
+' ========================================
+' ASSOCIATIONS
+' ========================================
+Student "1" -- "*" Enrollment : enrolls in >
+Student "1" -- "*" JoinRequest : submits >
+Instructor "1" -- "*" Course : teaches >
+Category "1" -- "*" Course : contains >
+Course "1" -- "*" Enrollment : has >
+Course "1" -- "*" JoinRequest : receives >
+Course "1" -- "*" CourseContent : contains >
+User "1" -- "*" Notification : receives >
+User "1" -- "*" AuditLog : performs >
+
+' ========================================
+' NOTES
+' ========================================
+note right of User
+  Abstract base class for all users.
+  Role determines which subclass
+  behavior applies.
+end note
+
+note right of Enrollment
+  Junction table for Many-to-Many
+  between Student and Course.
+  Unique constraint on (student_id, course_id)
+end note
+
+note bottom of JoinRequest
+  Used for closed courses that
+  require instructor approval.
+  Unique constraint on (student_id, course_id)
+end note
+
+@enduml
