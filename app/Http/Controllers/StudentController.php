@@ -272,6 +272,28 @@ class StudentController extends Controller
         // Get progress from pivot
         $progress = $enrollment->pivot->progress ?? 0;
         $enrolledAt = $enrollment->pivot->enrolled_at ?? null;
+
+        // Get completion data
+        $completedContentIds = $user->completedContents()
+            ->where('course_content_completions.course_id', $courseId)
+            ->pluck('course_contents.id')
+            ->toArray();
+            
+        // Determine current content (first uncompleted or first content if all uncompleted, or last if all completed)
+        $contents = $course->contents;
+        $currentContent = null;
+        
+        if ($contents->isNotEmpty()) {
+            // Find first uncompleted
+            $currentContent = $contents->first(function ($content) use ($completedContentIds) {
+                return !in_array($content->id, $completedContentIds);
+            });
+            
+            // If all completed, maybe show the first one or the last one? Let's show the first one for review
+            if (!$currentContent) {
+                $currentContent = $contents->first();
+            }
+        }
         
         // Get data required by student layout
         $enrolledCourses = $user->courses()
@@ -289,6 +311,73 @@ class StudentController extends Controller
         $joinRequests = collect(); // Empty for course detail page
         $categories = Category::all();
         
-        return view('student.course-show', compact('user', 'course', 'progress', 'enrolledAt', 'enrolledCourses', 'notifications', 'recommendedCourses', 'joinRequests', 'categories'));
+        return view('student.course-show', compact('user', 'course', 'progress', 'enrolledAt', 'enrolledCourses', 'notifications', 'recommendedCourses', 'joinRequests', 'categories', 'currentContent', 'completedContentIds'));
+    }
+
+    public function markContentComplete(Request $request, $courseId, $contentId)
+    {
+        $user = $request->user();
+        
+        // Verify enrollment
+        $enrollment = $user->courses()->where('courses.id', $courseId)->first();
+        if (!$enrollment) {
+            return response()->json(['message' => 'Not enrolled'], 403);
+        }
+
+        // Verify content belongs to course
+        $content = \App\Models\CourseContent::where('course_id', $courseId)
+            ->where('id', $contentId)
+            ->firstOrFail();
+
+        // Mark as complete if not already
+        \App\Models\CourseContentCompletion::firstOrCreate([
+            'user_id' => $user->id,
+            'course_content_id' => $contentId
+        ], [
+            'course_id' => $courseId,
+            'completed_at' => now()
+        ]);
+
+        // Calculate new progress
+        $totalContent = \App\Models\CourseContent::where('course_id', $courseId)->count();
+        $completedContent = \App\Models\CourseContentCompletion::where('user_id', $user->id)
+            ->where('course_id', $courseId)
+            ->count();
+            
+        $progress = $totalContent > 0 ? round(($completedContent / $totalContent) * 100) : 0;
+        
+        // Update enrollment progress
+        $user->courses()->updateExistingPivot($courseId, ['progress' => $progress]);
+
+        // Find next content
+        $nextContent = \App\Models\CourseContent::where('course_id', $courseId)
+            ->where('order', '>', $content->order)
+            ->orderBy('order', 'asc')
+            ->first();
+
+        // Prepare response data
+        $responseData = [
+            'message' => 'Content marked as complete',
+            'progress' => $progress,
+            'completed_content_count' => $completedContent
+        ];
+
+        if ($nextContent) {
+            $responseData['next_content'] = [
+                'id' => $nextContent->id,
+                'title' => $nextContent->title,
+                'type_label' => $nextContent->type_label,
+                'type_icon' => $nextContent->type_icon,
+                'content_type' => $nextContent->content_type,
+                'embed_url' => $nextContent->embed_url,
+                'external_link' => $nextContent->external_link,
+                'platform' => $nextContent->platform,
+                'content' => nl2br(e($nextContent->content))
+            ];
+        } else {
+            $responseData['course_completed'] = true;
+        }
+
+        return response()->json($responseData);
     }
 }

@@ -116,4 +116,16 @@ class CourseContent extends Model
 
         return "https://www.youtube.com/embed/{$videoId}";
     }
+
+    // Relationship with completions
+    public function completions()
+    {
+        return $this->hasMany(CourseContentCompletion::class);
+    }
+
+    // Check if content is completed by user
+    public function isCompletedBy(User $user)
+    {
+        return $this->completions()->where('user_id', $user->id)->exists();
+    }
 }

@@ -55,6 +55,18 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
+    public function contents()
+    {
+        return $this->hasMany(CourseContent::class);
+    }
+    
+    public function completedContents()
+    {
+        return $this->belongsToMany(CourseContent::class, 'course_content_completions', 'user_id', 'course_content_id')
+            ->withTimestamps()
+            ->withPivot('completed_at');
+    }
+
     public function joinRequests()
     {
         return $this->hasMany(JoinRequest::class, 'student_id');

@@ -55,20 +55,76 @@
                             <div class="progress-bar">
                                 <div class="progress-label">
                                     <span style="font-weight: 500;">Your Progress</span>
-                                    <span style="font-weight: 600;">{{ $progress }}%</span>
+                                    <span style="font-weight: 600;" id="progress-text">{{ $progress }}%</span>
                                 </div>
                                 <div class="progress-track">
-                                    <div class="progress-fill blue" style="width: {{ $progress }}%"></div>
+                                    <div class="progress-fill blue" id="progress-fill" style="width: {{ $progress }}%"></div>
                                 </div>
                             </div>
-                            <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">
-                                <i class="fas fa-calendar"></i>
-                                Enrolled on {{ $enrolledAt ? \Carbon\Carbon::parse($enrolledAt)->format('M d, Y') : 'Unknown' }}
-                            </p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                                <p style="font-size: 0.875rem; color: var(--gray-500); margin: 0;">
+                                    <i class="fas fa-calendar"></i>
+                                    Enrolled on {{ $enrolledAt ? \Carbon\Carbon::parse($enrolledAt)->format('M d, Y') : 'Unknown' }}
+                                </p>
+                                @if(isset($currentContent))
+                                <button onclick="scrollToContent()" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                                    <i class="fas fa-play"></i> Continue Learning
+                                </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Content Player Section -->
+            @if(isset($currentContent))
+            <div id="content-player" class="card" style="margin-top: 2rem; display: none;">
+                <div class="card-header" style="justify-content: space-between; align-items: center;">
+                    <h3><i class="{{ $currentContent->type_icon }}"></i> {{ $currentContent->title }}</h3>
+                    <span class="badge badge-primary">{{ $currentContent->type_label }}</span>
+                </div>
+                <div class="card-content">
+                    <div class="content-viewer">
+                        @if($currentContent->content_type === 'VIDEO')
+                            <div class="video-container">
+                                <iframe src="{{ $currentContent->embed_url }}" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        @elseif($currentContent->content_type === 'LINK')
+                            <div class="link-container" style="text-align: center; padding: 3rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                <i class="fas fa-link" style="font-size: 3rem; color: var(--blue-500); margin-bottom: 1rem;"></i>
+                                <p>This content is an external link:</p>
+                                <a href="{{ $currentContent->external_link }}" target="_blank" class="btn-primary">
+                                    Open {{ $currentContent->platform ?? 'Link' }} <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        @else
+                            <div class="text-content" style="padding: 1rem; line-height: 1.6;">
+                                {!! nl2br(e($currentContent->content)) !!}
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="content-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+                        @php
+                            $isLastContent = $course->contents->last()->id === $currentContent->id;
+                            $isCompleted = in_array($currentContent->id, $completedContentIds ?? []);
+                        @endphp
+                        <button id="mark-complete-btn" class="btn-primary" onclick="markComplete({{ $course->id }}, {{ $currentContent->id }})">
+                            @if($isLastContent)
+                                @if($isCompleted)
+                                    <i class="fas fa-check-double"></i> Course Completed
+                                @else
+                                    <i class="fas fa-flag-checkered"></i> Finish Course
+                                @endif
+                            @else
+                                <i class="fas fa-arrow-right"></i> Next Lesson
+                            @endif
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Course Details Grid -->
             <div class="course-details-grid">
@@ -131,6 +187,23 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem 1rem;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .course-header-section {
@@ -278,5 +351,128 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Animations */
+        @keyframes slideOutLeft {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-50px); opacity: 0; }
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .slide-out {
+            animation: slideOutLeft 0.3s ease forwards;
+        }
+        
+        .slide-in {
+            animation: slideInRight 0.3s ease forwards;
+        }
     </style>
+
+    <script>
+        function scrollToContent() {
+            const player = document.getElementById('content-player');
+            if (player) {
+                player.style.display = 'block';
+                player.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function markComplete(courseId, contentId) {
+            const btn = document.getElementById('mark-complete-btn');
+            const originalText = btn.innerHTML;
+            const playerCard = document.getElementById('content-player');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            fetch(`/student/courses/${courseId}/content/${contentId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    // Update progress bar
+                    document.getElementById('progress-text').innerText = data.progress + '%';
+                    document.getElementById('progress-fill').style.width = data.progress + '%';
+
+                    if (data.next_content) {
+                        // Slide out current content
+                        playerCard.classList.add('slide-out');
+                        
+                        setTimeout(() => {
+                            // Update content
+                            const headerTitle = playerCard.querySelector('.card-header h3');
+                            const badge = playerCard.querySelector('.badge');
+                            const contentViewer = playerCard.querySelector('.content-viewer');
+                            
+                            // Update Header
+                            headerTitle.innerHTML = `<i class="${data.next_content.type_icon}"></i> ${data.next_content.title}`;
+                            badge.textContent = data.next_content.type_label;
+                            
+                            // Update Viewer
+                            let viewerHtml = '';
+                            if (data.next_content.content_type === 'VIDEO') {
+                                viewerHtml = `
+                                    <div class="video-container">
+                                        <iframe src="${data.next_content.embed_url}" frameborder="0" allowfullscreen></iframe>
+                                    </div>`;
+                            } else if (data.next_content.content_type === 'LINK') {
+                                viewerHtml = `
+                                    <div class="link-container" style="text-align: center; padding: 3rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                        <i class="fas fa-link" style="font-size: 3rem; color: var(--blue-500); margin-bottom: 1rem;"></i>
+                                        <p>This content is an external link:</p>
+                                        <a href="${data.next_content.external_link}" target="_blank" class="btn-primary">
+                                            Open ${data.next_content.platform || 'Link'} <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>`;
+                            } else {
+                                viewerHtml = `
+                                    <div class="text-content" style="padding: 1rem; line-height: 1.6;">
+                                        ${data.next_content.content}
+                                    </div>`;
+                            }
+                            contentViewer.innerHTML = viewerHtml;
+
+                            // Update Button
+                            btn.innerHTML = '<i class="fas fa-arrow-right"></i> Next Lesson';
+                            btn.onclick = function() { markComplete(courseId, data.next_content.id); };
+                            btn.disabled = false;
+                            
+                            // Remove slide-out and add slide-in
+                            playerCard.classList.remove('slide-out');
+                            playerCard.classList.add('slide-in');
+                            
+                            // Clean up slide-in class after animation
+                            setTimeout(() => {
+                                playerCard.classList.remove('slide-in');
+                            }, 300);
+                            
+                        }, 300); // Wait for slide-out animation
+                    } else if (data.course_completed) {
+                        btn.innerHTML = '<i class="fas fa-check-double"></i> Course Completed';
+                        btn.classList.remove('btn-primary');
+                        btn.style.backgroundColor = 'var(--green-500)';
+                        btn.style.color = 'white';
+                        // Optional: Show confetti or redirect
+                    } else {
+                         btn.innerHTML = '<i class="fas fa-check-circle"></i> Completed';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert('An error occurred. Please try again.');
+            });
+        }
+    </script>
 @endsection

@@ -108,6 +108,7 @@ Route::middleware(['auth', 'verified', 'role:STUDENT'])->prefix('student')->name
     Route::post('/enroll/{course}', [StudentController::class, 'enroll'])->name('enroll');
     Route::post('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
     Route::put('/password', [StudentController::class, 'updatePassword'])->name('password.update');
+    Route::post('/courses/{course}/content/{content}/complete', [StudentController::class, 'markContentComplete'])->name('courses.content.complete');
 });
 
 Route::middleware('auth')->group(function () {
